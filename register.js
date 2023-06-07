@@ -8,30 +8,34 @@ const RegisterScreen = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const navigation = useNavigation();
 
   const handleRegister = async () => {
-    if (firstName === '' || lastName === '' || username === '' || email === '' || password === '') {
-      // Check if any of the fields are empty
+    if (firstName === '' || lastName === '' || username === '' || email === '' || phoneNumber === '' || password === '') {
       console.error('Please fill in all fields');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:3000/users/register', {
+      const response = await fetch('http://192.168.1.108:3000/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ firstName, lastName, username, email, password }),
+        body: JSON.stringify({ firstName, lastName, username, email, phoneNumber, password }),
       });
 
       if (response.ok) {
-        // Registration successful
+        const data = await response.json();
+        const { user, token } = data;
         console.log('Registration successful');
-        navigation.navigate('SellCar'); // Navigate to the sell car screen
+        // Save the token in your app's storage (e.g., AsyncStorage) for future requests
+        // You can use any storage mechanism suitable for your app
+        // For example, using AsyncStorage from '@react-native-async-storage/async-storage' package:
+        // await AsyncStorage.setItem('token', token);
+        navigation.navigate('SellCar');
       } else {
-        // Registration failed
         console.error('Registration failed');
       }
     } catch (error) {
@@ -40,7 +44,7 @@ const RegisterScreen = () => {
   };
 
   const handleLogin = () => {
-    navigation.navigate('LoginScreen'); // Navigate to the login screen
+    navigation.navigate('LoginScreen');
   };
 
   return (
@@ -70,6 +74,12 @@ const RegisterScreen = () => {
           placeholder="Email"
           onChangeText={(text) => setEmail(text)}
           value={email}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone Number"
+          onChangeText={(text) => setPhoneNumber(text)}
+          value={phoneNumber}
         />
         <TextInput
           style={styles.input}

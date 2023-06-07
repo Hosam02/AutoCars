@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -9,7 +10,7 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3000/users/login', {
+      const response = await fetch('http://192.168.1.108:3000/users/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -18,12 +19,11 @@ const LoginScreen = () => {
       });
 
       if (response.ok) {
-        // Login successful
-        const user = await response.json();
-        console.log('Logged in:', user);
-        navigation.navigate('SellCar'); // Navigate to the home page
+        const { token } = await response.json();
+        console.log('Logged in');
+        saveTokenToStorage(token);
+        navigation.navigate('SellCar');
       } else {
-        // Login failed
         console.error('Login failed');
       }
     } catch (error) {
@@ -31,8 +31,16 @@ const LoginScreen = () => {
     }
   };
 
+  const saveTokenToStorage = async (token) => { //this function is used to save the token given to the user once they logged in to keep up with all their activities inside the app
+    try {
+      await AsyncStorage.setItem('token', token);
+    } catch (error) {
+      console.error('Error saving token:', error);
+    }
+  };
+
   const handleRegister = () => {
-    navigation.navigate('RegisterScreen'); // Navigate to the register screen
+    navigation.navigate('RegisterScreen');
   };
 
   return (

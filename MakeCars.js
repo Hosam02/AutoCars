@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native';
 
 const MakeCarsScreen = ({ route, navigation }) => {
   const { make } = route.params;
   const [cars, setCars] = useState([]);
 
   useEffect(() => {
-    // Fetch the cars for the selected make
-    fetch(`http://localhost:3000/cars?make=${make}`)
+    // Fetch all cars
+    fetch('http://192.168.1.108:3000/cars')
       .then((response) => response.json())
-      .then((data) => setCars(data))
+      .then((data) => {
+        // Filter cars based on the selected make
+        const filteredCars = data.filter((car) => car.make === make);
+        setCars(filteredCars);
+      })
       .catch((error) => console.error('Error fetching cars:', error));
   }, [make]);
 
@@ -28,10 +32,11 @@ const MakeCarsScreen = ({ route, navigation }) => {
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => handleCarPress(item)} style={styles.carItem}>
+              {item.pictures ? (
+                <Image source={{ uri: item.pictures[0] }} style={styles.carPicture} resizeMode="contain" />
+              ) : null}
               <Text style={styles.carMake}>{item.make}</Text>
-              <Text style={styles.carModel}>{item.model}</Text>
-              <Text style={styles.carYear}>{item.year}</Text>
-              <Text style={styles.carPrice}>{`$${item.price}`}</Text>
+              <Text style={styles.carModel}>{`${item.year} - $${item.price}`}</Text>
             </TouchableOpacity>
           )}
         />
@@ -55,21 +60,17 @@ const styles = StyleSheet.create({
   carItem: {
     marginBottom: 16,
   },
+  carPicture: {
+    width: '100%',
+    height: 200,
+    marginBottom: 8,
+  },
   carMake: {
     fontSize: 18,
     fontWeight: 'bold',
   },
   carModel: {
     fontSize: 16,
-    marginBottom: 4,
-  },
-  carYear: {
-    fontSize: 16,
-    marginBottom: 4,
-  },
-  carPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   noCars: {
     fontSize: 16,

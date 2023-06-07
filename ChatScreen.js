@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
 
 const ChatScreen = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
+  const flatListRef = useRef(null);
 
   const handleSend = () => {
     if (inputText.trim() !== '') {
@@ -19,26 +20,38 @@ const ChatScreen = () => {
 
   useEffect(() => {
     // Scroll to the end of the chat when new messages are added
-    flatListRef.current.scrollToEnd({ animated: true });
+    if (messages.length > 0) {
+      flatListRef.current.scrollToEnd({ animated: true });
+    }
   }, [messages]);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.messageContainer}>
-      <Text style={styles.messageText}>{item.text}</Text>
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    if (!item) {
+      return null;
+    }
 
-  const keyExtractor = (item) => item.id;
+    return (
+      <View style={styles.messageContainer}>
+        <Text style={styles.messageText}>{item.text}</Text>
+      </View>
+    );
+  };
+
+  const keyExtractor = (item) => item?.id || '';
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        ref={flatListRef}
-        contentContainerStyle={styles.messagesContainer}
-      />
+      {messages.length > 0 && (
+        <FlatList
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          ref={flatListRef}
+          contentContainerStyle={styles.messagesContainer}
+          onContentSizeChange={() => flatListRef.current.scrollToEnd({ animated: true })}
+          onLayout={() => flatListRef.current.scrollToEnd({ animated: true })}
+        />
+      )}
 
       <View style={styles.inputContainer}>
         <TextInput

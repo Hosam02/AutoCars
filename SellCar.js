@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const SellCarScreen = () => {
   const [carData, setCarData] = useState({
@@ -11,6 +14,8 @@ const SellCarScreen = () => {
     description: '',
   });
 
+  const navigation = useNavigation();
+
   const handleInputChange = (key, value) => {
     setCarData({ ...carData, [key]: value });
   };
@@ -21,7 +26,7 @@ const SellCarScreen = () => {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
-
+  
     // Prepare the car object to be added to the database
     const car = {
       make: carData.make,
@@ -31,23 +36,26 @@ const SellCarScreen = () => {
       pictures: carData.pictures,
       description: carData.description,
     };
-
+  
     try {
+      // Retrieve the JWT token from the user session or storage
+      const token = await AsyncStorage.getItem('token');
+  
       // Make the API call to add the car to the database
-      const response = await fetch('http://localhost:3000/cars', {
+      const response = await fetch('http://192.168.1.108:3000/cars', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Include the JWT token in the Authorization header
         },
         body: JSON.stringify(car),
       });
-
+  
       // Handle the API response
       if (response.ok) {
         // Show a success message
         Alert.alert('Success', 'Thank you for adding the car!');
-
-        // Reset the form
+  
         setCarData({
           make: '',
           model: '',
@@ -59,11 +67,19 @@ const SellCarScreen = () => {
       } else {
         // Show an error message
         Alert.alert('Error', 'Failed to add the car. Please try again.');
+        console.log(response);
       }
     } catch (error) {
       // Handle any network or server errors
       Alert.alert('Error', 'An error occurred. Please try again later.');
+      console.log(error);
     }
+  };
+  
+
+  const handleSellCar = () => {
+    // Navigate to the sell car page
+    navigation.navigate('SellCarScreen');
   };
 
   return (
@@ -118,6 +134,25 @@ const SellCarScreen = () => {
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
+
+      <View style={styles.navBar}>
+        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.navButtonText}>Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('SearchScreen')}>
+          <Text style={styles.navButtonText}>Search</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.sellCarButton} onPress={handleSellCar}>
+          {/* Sell car icon */}
+          <Ionicons name="ios-add" size={32} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('FavoritesScreen')}>
+          <Text style={styles.navButtonText}>Favorites</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('ProfileScreen')}>
+          <Text style={styles.navButtonText}>Profile</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -150,6 +185,34 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  navBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#1e90ff',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 56,
+  },
+  navButton: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  sellCarButton: {
+    backgroundColor: '#1e90ff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
 });
 

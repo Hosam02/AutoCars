@@ -9,7 +9,7 @@ const SearchResults = ({ route }) => {
   useEffect(() => {
     const fetchSearchResults = async () => {
       try {
-        let url = 'http://localhost:3000/search';
+        let url = 'http://192.168.1.108:3000/search';
         if (makeId) {
           url += `?make=${makeId}`;
         } else if (query) {
